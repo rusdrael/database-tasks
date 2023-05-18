@@ -1,43 +1,24 @@
-CREATE FUNCTION idade_funcionario (codigo_funcionario int)
-RETURNS int
+CREATE PROCEDURE exibir_funcionarios_acima_media_idade(depto_id INT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-      idade integer;
+    avg_idade DECIMAL(10, 2);
+    rec RECORD;
 BEGIN
-      SELECT EXTRACT(YEAR FROM AGE(dataNasc))
-      INTO idade
-      FROM funcionario
-      WHERE codigo = codigo_funcionario;
-      
-      RETURN idade;
-END;
-$$;
+    SELECT AVG(EXTRACT(YEAR FROM age(dataNasc)))
+    INTO avg_idade
+    FROM funcionario
+    WHERE depto = depto_id;
 
-CREATE FUNCTION media_idade_depto (codigo_departamento int)
-RETURNS float
-LANGUAGE plpgsql
-AS $$
-DECLARE
-      media_idade_depto float;
-BEGIN
-      SELECT AVG(idade_funcionario(funcionario.codigo))
-      INTO media_idade_depto
-      FROM funcionario
-      WHERE funcionario.depto = codigo_departamento;
-      
-      RETURN media_idade_depto;
-END;
-$$;
+    RAISE NOTICE 'Média de idade do departamento: %.2f', avg_idade;
 
-CREATE FUNCTION  idade_maior_que_media_depto ()
-RETURNS table (codigo integer, nome varchar)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-      RETURN query
-        SELECT funcionario.codigo, funcionario.nome
+    FOR rec IN
+        SELECT nome, EXTRACT(YEAR FROM age(dataNasc)) AS idade
         FROM funcionario
-        WHERE media_idade_depto(funcionario.depto) < idade_funcionario(funcionario.codigo);
+        WHERE depto = depto_id
+        AND EXTRACT(YEAR FROM age(dataNasc)) > avg_idade
+    LOOP
+        RAISE NOTICE 'Funcionário: %, Idade: %', rec.nome, rec.idade;
+    END LOOP;
 END;
 $$;
