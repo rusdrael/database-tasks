@@ -9,3 +9,4 @@ Repositório para as atividades de BD2.
 ## Tarefas
 
 [Tarefa 01](tarefa01/tarefa01.md)
+[Tarefa 02](tarefas/t02/t02.md)
